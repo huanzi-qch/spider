@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--解决idea thymeleaf 表达式模板报红波浪线-->
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>BOOK DETAILS</title>
+    <!-- Bootstrap、layui CSS 文件 -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/layui/css/layui.css}" rel="stylesheet" type="text/css"/>
+
+    <link th:href="@{/css/book_details.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div class="main">
+    <div class='book'>
+        <div id="bookImg"></div>
+        <p>书名：<span th:text="${book.bookName}"></span></p>
+        <p>作者：<span th:text="${book.author}"></span></p>
+        <p>简介：<span th:text="${book.synopsis}"></span></p>
+        <p>最新章节：<a th:href="${book.latestChapterUrl}" th:text="${book.latestChapter}"></a></p>
+        <p>更新时间：<span th:text="${book.updateDate}"></span></p>
+        <p>大小：<span th:text="${book.magnitude}"></span></p>
+        <p>状态：<span th:text="${book.status}"></span></p>
+        <p>类型：<span th:text="${book.type}"></span></p>
+        <p>来源：<span th:text="${book.source.name}"></span></p>
+    </div>
+    <br/>
+    <div class="chapters" th:each="chapter,iterStat:${book.chapters}">
+        <p class="click-book-read" th:attr="data-chapterurl=${chapter.url},data-sourcekey=${book.source.key},data-refererurl=${book.bookUrl}" th:text="${chapter.chapterName}"></p>
+    </div>
+</div>
+</body>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:inline="javascript">
+    //项目路径
+    var ctx = [[${#request.getContextPath()}]];
+    var book = [[${book}]];//取出后台数据
+</script>
+<script th:src="@{/js/book_details.js}"></script>
+</html>

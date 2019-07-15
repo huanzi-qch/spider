@@ -1,0 +1,17 @@
+body{
+    background-color: antiquewhite;
+}
+
+.main{
+    margin: auto;
+    width: 500px;
+    margin-top: 150px;
+}
+
+#bookName{
+    width: 300px;
+}
+
+#title{
+    text-align: center;
+}

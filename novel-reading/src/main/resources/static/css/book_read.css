@@ -1,0 +1,25 @@
+body {
+    background-color: antiquewhite;
+}
+
+.main {
+    padding: 10px 20px;
+}
+
+.click-book-detail, .click-book-read {
+    cursor: pointer;
+    color: #428bca;
+}
+
+.click-book-detail:hover {
+    color: rgba(150, 149, 162, 0.47);
+}
+
+.click-book-read:hover {
+    color: rgba(150, 149, 162, 0.47);
+}
+
+.float-left{
+    float: left;
+    margin-left: 70px;
+}

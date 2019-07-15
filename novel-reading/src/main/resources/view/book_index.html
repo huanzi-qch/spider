@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--解决idea thymeleaf 表达式模板报红波浪线-->
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>MY BOOK</title>
+    <!-- Bootstrap CSS 文件 -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet" type="text/css"/>
+
+    <link th:href="@{/css/book_index.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+    <div class="main">
+        <h2 id="title">MY BOOK</h2>
+        <form class="form-inline" method="get" th:action="@{/book/search}">
+            来源
+            <select class="form-control" id="source" name="sourceKey">
+                <option value="">所有</option>
+                <option value="biquge">笔趣阁</option>
+                <option value="zongheng">纵横网</option>
+                <option value="qidian">起点网</option>
+            </select>
+            <input type="text" id="bookName" name="bookName" class="form-control" placeholder="请输入..."/>
+            <button class="btn btn-info" type="submit">搜索</button>
+        </form>
+    </div>
+</body>
+</html>

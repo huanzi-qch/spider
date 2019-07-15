@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--解决idea thymeleaf 表达式模板报红波浪线-->
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>BOOK READ</title>
+    <link th:href="@{/css/book_read.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div class="main">
+    <!-- 章节名称 -->
+    <h3 th:text="${book.nowChapter}"></h3>
+    <!-- 章节内容 -->
+    <p th:utext="${book.nowChapterValue}"></p>
+    <!-- 上、下章 -->
+    <p class="click-book-read float-left"
+       th:attr="data-chapterurl=${book.nextChapterUrl},data-sourcekey=${book.source.key},data-refererurl=${book.nowChapterUrl}"
+       th:text="${book.nextChapter}"></p>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <p class="click-book-read float-left"
+       th:attr="data-chapterurl=${book.prevChapterUrl},data-sourcekey=${book.source.key},data-refererurl=${book.nowChapterUrl}"
+       th:text="${book.prevChapter}"></p>
+</div>
+</body>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:inline="javascript">
+    //项目路径
+    var ctx = [[${#request.getContextPath()}]];
+</script>
+<script th:src="@{/js/book_read.js}"></script>
+</html>
