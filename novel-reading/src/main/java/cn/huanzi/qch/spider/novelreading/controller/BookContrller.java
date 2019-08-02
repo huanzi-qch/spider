@@ -60,8 +60,9 @@ public class BookContrller {
         //来源
         String sourceKey = book.getSourceKey();
 
-        //获取来源详情
-        Map<String, String> src = source.get(sourceKey);
+        //获取来源详情，复制一份
+        Map<String, String> src = new HashMap<>();
+        src.putAll(source.get(sourceKey));
 
         // 编码
         try {
@@ -107,7 +108,10 @@ public class BookContrller {
      */
     @GetMapping("details")
     public ModelAndView details(String sourceKey,String bookUrl,String searchUrl) {
-        Map<String, String> src = source.get(sourceKey);
+        //获取来源详情，复制一份
+        Map<String, String> src = new HashMap<>();
+        src.putAll(source.get(sourceKey));
+
         src.put("searchUrl",searchUrl);
         Book book = new Book();
         //调用不同的方法
