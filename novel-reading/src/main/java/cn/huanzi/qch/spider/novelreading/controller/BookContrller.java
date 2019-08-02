@@ -136,7 +136,10 @@ public class BookContrller {
      */
     @GetMapping("read")
     public ModelAndView read(String sourceKey,String chapterUrl,String refererUrl) {
-        Map<String, String> src = source.get(sourceKey);
+        //获取来源详情，复制一份
+        Map<String, String> src = new HashMap<>();
+        src.putAll(source.get(sourceKey));
+
         Book book = new Book();
         //调用不同的方法
         switch (sourceKey) {
