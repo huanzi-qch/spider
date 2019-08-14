@@ -79,7 +79,7 @@ public class BlogController {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void updateBlogListScheduled(){
-        //从新获取
+        //重新获取
         try {
             log.info("更新博客集合任务开始 ---" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
             HttpClient httpClient = HttpClientUtil.getHttpClient();

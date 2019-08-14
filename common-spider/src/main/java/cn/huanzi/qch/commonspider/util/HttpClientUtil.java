@@ -50,6 +50,7 @@ public class HttpClientUtil {
     public static HttpClient getHttpClient() {
         HttpClient httpclient = null;
         try {
+
             //采用绕过验证的方式处理https请求
             SSLContext sslcontext = SSLContext.getInstance("SSLv3");
             // 实现一个X509TrustManager接口，用于绕过验证，不用修改里面的方法
