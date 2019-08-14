@@ -18,6 +18,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,8 +26,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -71,11 +71,19 @@ public class BlogController {
      */
     @GetMapping("updateBlogList")
     public void updateBlogList(String blogIndexUrl) {
+        updateBlogListScheduled();
+    }
+
+    /**
+     * 定时任务，一天触发一次
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateBlogListScheduled(){
         //从新获取
         try {
             log.info("更新博客集合任务开始 ---" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
             HttpClient httpClient = HttpClientUtil.getHttpClient();
-            ResultVo<String> resultVo = HttpClientUtil.gather(httpClient, blogIndexUrl, "https://www.cnblogs.com", null);
+            ResultVo<String> resultVo = HttpClientUtil.gather(httpClient, "https://www.cnblogs.com/huanzi-qch/", "https://www.cnblogs.com", null);
             updateBlogListTask(resultVo.getPage(), httpClient);
             log.info("更新博客集合任务结束 ---" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 

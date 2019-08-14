@@ -6,7 +6,9 @@ import cn.huanzi.qch.commonspider.vo.ResultVo;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.http.*;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -72,12 +74,16 @@ public class HttpClientUtil {
             sslcontext.init(null, new TrustManager[]{trustManager}, null);
 
             //获取一个构造器
-            HttpClientBuilder httpClientBuilder = HttpClients.custom().
+            HttpClientBuilder httpClientBuilder = HttpClients.custom()
                     // 设置协议http和https对应的处理socket链接工厂的对象
-                            setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+                    .setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
                             .register("http", PlainConnectionSocketFactory.INSTANCE)
                             .register("https", new SSLConnectionSocketFactory(sslcontext))
-                            .build()));
+                            .build()))
+                    //设置超时时间
+                    .setDefaultRequestConfig(RequestConfig.custom()
+                            .setConnectTimeout(5000).setConnectionRequestTimeout(1000)
+                            .setSocketTimeout(5000).build());
 
             //创建自定义的httpclient对象
             httpclient = httpClientBuilder.build();
@@ -139,7 +145,9 @@ public class HttpClientUtil {
         //是否还要其他的Header，可以直接在http请求的head里面携带cookie
         if (!StringUtils.isEmpty(headers)) {
             headers.forEach((header) -> {
-                httpGet.addHeader(header.get("name"), header.get("value"));
+                String key = (String) header.keySet().toArray()[0];
+                httpGet.removeHeaders(key);
+                httpGet.addHeader(key, header.get(key));
             });
         }
 
