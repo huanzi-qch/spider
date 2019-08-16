@@ -11,7 +11,9 @@ import cn.huanzi.qch.flowspider.cnblogs.repository.BlogRepository;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,7 +28,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -83,8 +86,8 @@ public class BlogController {
         try {
             log.info("更新博客集合任务开始 ---" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
             HttpClient httpClient = HttpClientUtil.getHttpClient();
-            ResultVo<String> resultVo = HttpClientUtil.gather(httpClient, "https://www.cnblogs.com/huanzi-qch/", "https://www.cnblogs.com", null);
-            updateBlogListTask(resultVo.getPage(), httpClient);
+            ResultVo<HttpResponse> resultVo = HttpClientUtil.gatherForGet(httpClient, "https://www.cnblogs.com/huanzi-qch/", "https://www.cnblogs.com", null);
+            updateBlogListTask(EntityUtils.toString(resultVo.getPage().getEntity(), "UTF-8"), httpClient);
             log.info("更新博客集合任务结束 ---" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
             //获取所有博客
@@ -170,8 +173,8 @@ public class BlogController {
         if (nextPage.size() > 0 && nextPage.get(0).text().contains("下一页")) {
             pageIndex++;
             String nextPageUrl = "https://www.cnblogs.com/huanzi-qch/default.html?page=" + pageIndex;
-            ResultVo<String> resultVo = HttpClientUtil.gather(httpClient, nextPageUrl, "https://www.cnblogs.com", null);
-            updateBlogListTask(resultVo.getPage(), httpClient);
+            ResultVo<HttpResponse> resultVo = HttpClientUtil.gatherForGet(httpClient, nextPageUrl, "https://www.cnblogs.com", null);
+            updateBlogListTask(EntityUtils.toString(resultVo.getPage().getEntity(), "UTF-8"), httpClient);
         } else {
             pageIndex = 1;
         }
@@ -199,7 +202,7 @@ public class BlogController {
                     log.info(random + "秒后开始下一次访问");
                     Thread.sleep(random * 1000);
 
-                    ResultVo<HtmlPage> resultVo = WebClientUtil.gather(webClient, blog.getBlogUrl(), "https://www.cnblogs.com/", null);
+                    ResultVo<HtmlPage> resultVo = WebClientUtil.gatherForGet(webClient, blog.getBlogUrl(), "https://www.cnblogs.com/", null);
                     if (200 == resultVo.getStatusCode()) {
                         log.info(blog.getBlogName() + "，下标：" + blogIndex + " ，访问成功，当前阅读量：" + resultVo.getPage().getHtmlElementById("post_view_count").asText() + "，成功" + okCount + "次" + "，失败" + failureCount + "次");
                         okCount++;

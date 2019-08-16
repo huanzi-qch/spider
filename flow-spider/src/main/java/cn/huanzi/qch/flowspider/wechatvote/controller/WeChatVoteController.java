@@ -1,10 +1,13 @@
-package cn.huanzi.qch.flowspider.cnblogs.controller;
+package cn.huanzi.qch.flowspider.wechatvote.controller;
 
 import cn.huanzi.qch.commonspider.repository.IpProxyPoolRepository;
 import cn.huanzi.qch.commonspider.util.HttpClientUtil;
 import cn.huanzi.qch.commonspider.vo.ResultVo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,7 +46,6 @@ public class WeChatVoteController {
 
         //更新IP代理，User Agent池赋一个空对象即可
         HttpClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), new ArrayList<>());
-
         go(HttpClientUtil.getHttpClient());
     }
 
@@ -91,10 +93,14 @@ public class WeChatVoteController {
                     log.info(random + "秒后开始下一次访问");
                     Thread.sleep(random * 1000);
 
-                    ResultVo<String> resultVo = HttpClientUtil.gather(httpClient, "http://www.dzmshd.com/Home/index.php?m=Index&a=vote&vid=8679&id=42&tp=", "http://www.dzmshd.com/", headers);
+                    ResultVo<HttpResponse> resultVo = HttpClientUtil.gatherForGet(httpClient, "http://www.dzmshd.com/Home/index.php?m=Index&a=vote&vid=8679&id=42&tp=", "http://www.dzmshd.com/", headers);
                     //获取页面源代码
-                    log.info(resultVo.getPage());
-                    if (resultVo.getPage().contains("投票成功")) {
+                    StatusLine statusLine = resultVo.getPage().getStatusLine();
+                    log.info("响应状态码："+ statusLine.getStatusCode());
+                    log.info("响应消息："+statusLine.getReasonPhrase());
+                    String result = EntityUtils.toString(resultVo.getPage().getEntity(), "UTF-8");
+                    log.info(result);
+                    if (result.contains("投票成功")) {
                         log.info("投票成功，第" + okCount + "次");
                         okCount++;
                     } else {

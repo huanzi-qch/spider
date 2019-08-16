@@ -5,11 +5,14 @@ import cn.huanzi.qch.commonspider.pojo.UserAgent;
 import cn.huanzi.qch.commonspider.vo.ResultVo;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +96,7 @@ public class WebClientUtil {
     /**
      * 根据一个url发起get请求
      */
-    public static ResultVo<HtmlPage> gather(WebClient webClient, String url, String refererUrl, List<Map<String, String>> headers) throws IOException {
+    public static ResultVo<HtmlPage> gatherForGet(WebClient webClient, String url, String refererUrl, List<Map<String, String>> headers) throws IOException {
         //更新代理IP、UA
         updateIpProxyAndUserAgentForWebClient(webClient);
 
@@ -104,13 +107,72 @@ public class WebClientUtil {
         //是否还要其他的Header，可以直接在http请求的head里面携带cookie，或者这样设置：webClient.getCookieManager().addCookie(cookie);
         if (!StringUtils.isEmpty(headers)) {
             headers.forEach((header) -> {
-                webClient.removeRequestHeader(header.get("name"));
-                webClient.addRequestHeader(header.get("name"), header.get("value"));
+                String key = (String) header.keySet().toArray()[0];
+                webClient.removeRequestHeader(key);
+                webClient.addRequestHeader(key, header.get(key));
             });
         }
 
-        //访问url
-        HtmlPage page = webClient.getPage(url);
+        //get访问
+        WebRequest request = new WebRequest(new URL(url), HttpMethod.GET);
+        request.setProxyHost(webClient.getOptions().getProxyConfig().getProxyHost());
+        request.setProxyPort(webClient.getOptions().getProxyConfig().getProxyPort());
+
+        HtmlPage page = webClient.getPage(request);
+        WebResponse response = page.getWebResponse();
+
+        return ResultVo.of(response.getStatusCode(), response.getStatusMessage(), page);
+    }
+
+    /**
+     * 根据一个url发起post请求
+     */
+    public static ResultVo<HtmlPage> gatherForPost(WebClient webClient, String url, String refererUrl, List<Map<String, String>> headers,Map<String,Object> paramMap) throws IOException {
+        //更新代理IP、UA
+        updateIpProxyAndUserAgentForWebClient(webClient);
+
+        //Referer，默认百度 https://www.baidu.com
+        webClient.removeRequestHeader("Referer");
+        webClient.addRequestHeader("Referer", StringUtils.isEmpty(refererUrl) ? "https://www.baidu.com" : refererUrl);
+
+        //是否还要其他的Header，可以直接在http请求的head里面携带cookie，或者这样设置：webClient.getCookieManager().addCookie(cookie);
+        if (!StringUtils.isEmpty(headers)) {
+            headers.forEach((header) -> {
+                String key = (String) header.keySet().toArray()[0];
+                webClient.removeRequestHeader(key);
+                webClient.addRequestHeader(key, header.get(key));
+            });
+        }
+
+        //post访问
+        WebRequest request = new WebRequest(new URL(url), HttpMethod.POST);
+        request.setProxyHost(webClient.getOptions().getProxyConfig().getProxyHost());
+        request.setProxyPort(webClient.getOptions().getProxyConfig().getProxyPort());
+
+        /*
+            服务端有@RequestBody，请求头需要设置Content-type=application/json; charset=UTF-8，同时请求参数要放在body里
+         */
+//        request.setRequestBody(JSONObject.fromObject(paramMap).toString());
+//        webClient.removeRequestHeader("Content-Type");
+//        webClient.addRequestHeader("Content-Type","application/json;charset=UTF-8");
+
+        /*
+           服务端没有@RequestBody，请求头需要设置Content-type=application/x-www-form-urlencoded; charset=UTF-8，同时请求参数要放在URL参数里
+        */
+        ArrayList<NameValuePair> list = new ArrayList<>();
+        for (int i = 0; i < paramMap.size(); i++) {
+            String key = (String) paramMap.keySet().toArray()[i];
+            list.add(new NameValuePair(key, (String) paramMap.get(key)));
+        }
+        request.setRequestParameters(list);
+
+        webClient.removeRequestHeader("Content-Type");
+        webClient.addRequestHeader("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+
+
+        webClient.removeRequestHeader("Accept");
+        webClient.addRequestHeader("Accept", "*/*");
+        HtmlPage page = webClient.getPage(request);
         WebResponse response = page.getWebResponse();
 
         return ResultVo.of(response.getStatusCode(), response.getStatusMessage(), page);
@@ -136,7 +198,7 @@ public class WebClientUtil {
      */
     public static void main(String[] args) {
 //        try {
-//            ResultVo<HtmlPage> resultVo = WebClientUtil.gather(webClient, "https://book.qidian.com/info/1004608738","",null);
+//            ResultVo<HtmlPage> resultVo = WebClientUtil.gatherForGet(webClient, "https://book.qidian.com/info/1004608738","",null);
 //            HtmlPage page = resultVo.getPage();
 //
 //            //模拟点击“目录”
