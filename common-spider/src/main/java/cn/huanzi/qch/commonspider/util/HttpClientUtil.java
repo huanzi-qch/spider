@@ -133,7 +133,7 @@ public class HttpClientUtil {
     /**
      * 根据一个url发起get请求
      */
-    public static ResultVo<HttpResponse> gatherForGet(HttpClient httpClient, String url, String refererUrl, List<Map<String, String>> headers) throws IOException {
+    public static ResultVo<HttpResponse> gatherForGet(HttpClient httpClient, String url, String refererUrl, Map<String, String> headers) throws IOException {
         //创建get方式请求对象
         HttpGet httpGet = new HttpGet(url);
 
@@ -148,10 +148,9 @@ public class HttpClientUtil {
 
         //是否还要其他的Header，可以直接在http请求的head里面携带cookie
         if (!StringUtils.isEmpty(headers)) {
-            headers.forEach((header) -> {
-                String key = (String) header.keySet().toArray()[0];
+            headers.forEach((key, value) -> {
                 httpGet.removeHeaders(key);
-                httpGet.addHeader(key, header.get(key));
+                httpGet.addHeader(key, value);
             });
         }
 
@@ -165,7 +164,7 @@ public class HttpClientUtil {
     /**
      * 根据一个url发起post请求
      */
-    public static ResultVo<HttpResponse> gatherForPost(HttpClient httpClient, String url, String refererUrl, List<Map<String, String>> headers, Map<String, Object> paramMap) throws IOException {
+    public static ResultVo<HttpResponse> gatherForPost(HttpClient httpClient, String url, String refererUrl, Map<String, String> headers, Map<String, Object> paramMap) throws IOException {
         //创建post方式请求对象
         HttpPost httpPost = new HttpPost(url);
 
@@ -198,10 +197,9 @@ public class HttpClientUtil {
 
         //是否还要其他的Header，可以直接在http请求的head里面携带cookie
         if (!StringUtils.isEmpty(headers)) {
-            headers.forEach((header) -> {
-                String key = (String) header.keySet().toArray()[0];
+            headers.forEach((key, value) -> {
                 httpPost.removeHeaders(key);
-                httpPost.addHeader(key, header.get(key));
+                httpPost.addHeader(key, value);
             });
         }
 

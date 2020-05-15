@@ -5,6 +5,7 @@ import cn.huanzi.qch.commonspider.pojo.UserAgent;
 import cn.huanzi.qch.commonspider.vo.ResultVo;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
@@ -94,9 +95,22 @@ public class WebClientUtil {
     }
 
     /**
+     * 设置cookie
+     */
+    public static void setCookie(WebClient webClient,String domain,String cookieString){
+        //设置cookie
+        for (String value : cookieString.split(";")) {
+            String[] split = value.trim().split("=");
+            //域名、key、value
+            Cookie cookie = new Cookie(domain,split[0],split[1]);
+            webClient.getCookieManager().addCookie(cookie);
+        }
+    }
+
+    /**
      * 根据一个url发起get请求
      */
-    public static ResultVo<HtmlPage> gatherForGet(WebClient webClient, String url, String refererUrl, List<Map<String, String>> headers) throws IOException {
+    public static ResultVo<HtmlPage> gatherForGet(WebClient webClient, String url, String refererUrl, Map<String, String> headers) throws IOException {
         //更新代理IP、UA
         updateIpProxyAndUserAgentForWebClient(webClient);
 
@@ -106,10 +120,9 @@ public class WebClientUtil {
 
         //是否还要其他的Header，可以直接在http请求的head里面携带cookie，或者这样设置：webClient.getCookieManager().addCookie(cookie);
         if (!StringUtils.isEmpty(headers)) {
-            headers.forEach((header) -> {
-                String key = (String) header.keySet().toArray()[0];
+            headers.forEach((key, value) -> {
                 webClient.removeRequestHeader(key);
-                webClient.addRequestHeader(key, header.get(key));
+                webClient.addRequestHeader(key, value);
             });
         }
 
@@ -127,7 +140,7 @@ public class WebClientUtil {
     /**
      * 根据一个url发起post请求
      */
-    public static ResultVo<HtmlPage> gatherForPost(WebClient webClient, String url, String refererUrl, List<Map<String, String>> headers,Map<String,Object> paramMap) throws IOException {
+    public static ResultVo<HtmlPage> gatherForPost(WebClient webClient, String url, String refererUrl, Map<String, String> headers,Map<String,Object> paramMap) throws IOException {
         //更新代理IP、UA
         updateIpProxyAndUserAgentForWebClient(webClient);
 
@@ -137,10 +150,9 @@ public class WebClientUtil {
 
         //是否还要其他的Header，可以直接在http请求的head里面携带cookie，或者这样设置：webClient.getCookieManager().addCookie(cookie);
         if (!StringUtils.isEmpty(headers)) {
-            headers.forEach((header) -> {
-                String key = (String) header.keySet().toArray()[0];
+            headers.forEach((key, value) -> {
                 webClient.removeRequestHeader(key);
-                webClient.addRequestHeader(key, header.get(key));
+                webClient.addRequestHeader(key, value);
             });
         }
 

@@ -2,12 +2,11 @@ package cn.huanzi.qch.flowspider.wechatvote.controller;
 
 import cn.huanzi.qch.commonspider.repository.IpProxyPoolRepository;
 import cn.huanzi.qch.commonspider.util.HttpClientUtil;
+import cn.huanzi.qch.commonspider.util.WebClientUtil;
 import cn.huanzi.qch.commonspider.vo.ResultVo;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,8 +44,8 @@ public class WeChatVoteController {
         //开启任务
 
         //更新IP代理，User Agent池赋一个空对象即可
-        HttpClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), new ArrayList<>());
-        go(HttpClientUtil.getHttpClient());
+        WebClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), new ArrayList<>());
+        go(WebClientUtil.getWebClient());
     }
 
     /**
@@ -61,7 +60,7 @@ public class WeChatVoteController {
      * 开始刷
      */
     @Async("asyncTaskExecutor")
-    void go(HttpClient httpClient) {
+    void go(WebClient webClient) {
         //微信UserAgent标识
         String[] webKitUserAgent = {
                 "Mozilla/5.0 (Linux; Android 7.1.1; MI 6 Build/NMF26X; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/043807 Mobile Safari/537.36 MicroMessenger/6.6.1.1220(0x26060135) NetType/WIFI Language/zh_CN",
@@ -82,25 +81,32 @@ public class WeChatVoteController {
                 }
 
                 //随机设置微信UserAgent标识
-                ArrayList<Map<String, String>> headers = new ArrayList<>();
-                Map<String, String> map = new HashMap<>();
-                map.put("User-Agent", webKitUserAgent[HttpClientUtil.randomNumber(0, webKitUserAgent.length - 1)]);
-                headers.add(map);
+                Map<String, String> headers = new HashMap<>();
+                headers.put("User-Agent", webKitUserAgent[HttpClientUtil.randomNumber(0, webKitUserAgent.length - 1)]);
 
+                Map<String, Object> paramMap = new HashMap<>();
+                paramMap.put("json","{\"super_vote_item\":[{\"vote_id\":452951133,\"item_idx_list\":{\"item_idx\":[\"20\"]}}],\"super_vote_id\":452950995}");
+                paramMap.put("action","vote");
+//                paramMap.put("__biz","MzI1MzAyMjIzMA==");
+//                paramMap.put("uin","MTE5MjIyMjE3OA==");
+                paramMap.put("key","d2b64b7a8020292ce617a561e59ca839e6206268eb70753f145af6fb199102e70f5f8cc14f6d66e37005664507517f078fe72c42cd2a8481fb22305fb3d8caf65b85a14730b84d614c80fe0fe080124b");
+//                paramMap.put("pass_ticket","2oivn2WIng7YFtpCNVV0jnjKCwI7EWcUveLaZx9TpEhEYtnbO%2FqXmKtKcUWWcHir");
+                paramMap.put("appmsg_token","1035_LwVeT3eQpujaat2EJlQKEUN8k__S5HlfEjdI02v1JNagXo29ZWVdcKAhF6wNXt46-PG_4_GzVRDiJ8xf");
+//                paramMap.put("f","json");
+//                paramMap.put("idx","1");
+//                paramMap.put("mid","2649139206");
+                paramMap.put("wxtoken","777");
                 try {
                     //随机3到6秒数访问
                     Integer random = HttpClientUtil.randomNumber(3, 6);
                     log.info(random + "秒后开始下一次访问");
                     Thread.sleep(random * 1000);
 
-                    ResultVo<HttpResponse> resultVo = HttpClientUtil.gatherForGet(httpClient, "http://www.dzmshd.com/Home/index.php?m=Index&a=vote&vid=8679&id=42&tp=", "http://www.dzmshd.com/", headers);
+                    ResultVo<HtmlPage> resultVo = WebClientUtil.gatherForPost(webClient, "https://mp.weixin.qq.com/mp/newappmsgvote", "https://mp.weixin.qq.com/mp/newappmsgvote?action=show&__biz=MzI1MzAyMjIzMA==&supervoteid=452950995&uin=MTE5MjIyMjE3OA%3D%3D&key=d2b64b7a8020292ce617a561e59ca839e6206268eb70753f145af6fb199102e70f5f8cc14f6d66e37005664507517f078fe72c42cd2a8481fb22305fb3d8caf65b85a14730b84d614c80fe0fe080124b&pass_ticket=2oivn2WIng7YFtpCNVV0jnjKCwI7EWcUveLaZx9TpEhEYtnbO%252FqXmKtKcUWWcHir&wxtoken=777&mid=2649139206&idx=1&appmsg_token=1035_LwVeT3eQpujaat2EJlQKEUN8k__S5HlfEjdI02v1JNagXo29ZWVdcKAhF6wNXt46-PG_4_GzVRDiJ8xf", headers, paramMap);
                     //获取页面源代码
-                    StatusLine statusLine = resultVo.getPage().getStatusLine();
-                    log.info("响应状态码："+ statusLine.getStatusCode());
-                    log.info("响应消息："+statusLine.getReasonPhrase());
-                    String result = EntityUtils.toString(resultVo.getPage().getEntity(), "UTF-8");
+                    String result = resultVo.getPage().asText();
                     log.info(result);
-                    if (result.contains("投票成功")) {
+                    if (result.contains("errmsg:\"ok\"")) {
                         log.info("投票成功，第" + okCount + "次");
                         okCount++;
                     } else {
