@@ -6,6 +6,12 @@ novel-reading是这篇博客（[httpclient+jsoup实现小说线上采集阅读](
 
 common-spider、flow-spider是这篇博客（[免费IP代理池定时维护，封装通用爬虫工具类每次随机更新IP代理池跟UserAgent池，并制作简易流量爬虫](https://www.cnblogs.com/huanzi-qch/p/11347430.html)）的demo代码<br/>
 
+QQ群<br/>
+有事请加群，有问题进群大家一起交流！
+QQ群名：Java交流群-huanzi-qch
+QQ群号：1015379123
+![](https://files-cdn.cnblogs.com/files/huanzi-qch/QQ.bmp) 
+
 捐献<br/>
 请注意，作者五行缺钱，如果喜欢这个项目，请随意打赏！
 
