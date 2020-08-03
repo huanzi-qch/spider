@@ -1,5 +1,5 @@
 ## 简介<br/> 
-Spider网络爬虫<br/>
+Spider网络爬虫Demo，主要功能有：抓取小说并保存到本地TXT文件；小说线上采集阅读；ip代理池维护，并制作简易流量爬虫；<br/>
 
 ## 仓库地址<br/> 
 国外：https://github.com/huanzi-qch/spider<br/> 
