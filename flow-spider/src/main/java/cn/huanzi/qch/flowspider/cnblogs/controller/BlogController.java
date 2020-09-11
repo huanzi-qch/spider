@@ -4,6 +4,8 @@ import cn.huanzi.qch.commonspider.repository.IpProxyPoolRepository;
 import cn.huanzi.qch.commonspider.repository.UserAgentPoolRepository;
 import cn.huanzi.qch.commonspider.timer.IpProxyPoolScheduler;
 import cn.huanzi.qch.commonspider.util.HttpClientUtil;
+import cn.huanzi.qch.commonspider.util.IpProxyPoolUtil;
+import cn.huanzi.qch.commonspider.util.RandomUtil;
 import cn.huanzi.qch.commonspider.util.WebClientUtil;
 import cn.huanzi.qch.commonspider.vo.ResultVo;
 import cn.huanzi.qch.flowspider.cnblogs.pojo.Blog;
@@ -135,7 +137,7 @@ public class BlogController {
         //获取WebClient对象
         WebClient webClient = WebClientUtil.getWebClient();
         //更新IP代理、User Agent池
-        WebClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), userAgentPoolRepository.findAll());
+        IpProxyPoolUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), userAgentPoolRepository.findAll());
 
         //获取所有博客
         blogList = blogRepository.findAll();
@@ -193,12 +195,12 @@ public class BlogController {
                 }
 
                 //随机获取博客
-                Integer blogIndex = WebClientUtil.randomNumber(0, blogList.size() - 1);
+                Integer blogIndex = RandomUtil.randomNumber(0, blogList.size() - 1);
                 Blog blog = blogList.get(blogIndex);
 
                 try {
                     //随机3到6秒数访问
-                    Integer random = WebClientUtil.randomNumber(3, 6);
+                    Integer random = RandomUtil.randomNumber(3, 6);
                     log.info(random + "秒后开始下一次访问");
                     Thread.sleep(random * 1000);
 

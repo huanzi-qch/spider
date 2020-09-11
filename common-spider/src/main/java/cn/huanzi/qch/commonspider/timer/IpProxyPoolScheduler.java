@@ -3,7 +3,7 @@ package cn.huanzi.qch.commonspider.timer;
 import cn.huanzi.qch.commonspider.pojo.IpProxy;
 import cn.huanzi.qch.commonspider.repository.IpProxyPoolRepository;
 import cn.huanzi.qch.commonspider.repository.UserAgentPoolRepository;
-import cn.huanzi.qch.commonspider.util.HttpClientUtil;
+import cn.huanzi.qch.commonspider.util.IpProxyPoolUtil;
 import cn.huanzi.qch.commonspider.util.WebClientUtil;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.ProxyConfig;
@@ -91,8 +91,8 @@ public class IpProxyPoolScheduler {
         log.info("定时检查IP代理池任务结束 ---" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
         //更新IP代理、User Agent池
-        WebClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), userAgentPoolRepository.findAll());
-        HttpClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), userAgentPoolRepository.findAll());
+        IpProxyPoolUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), userAgentPoolRepository.findAll());
+        IpProxyPoolUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), userAgentPoolRepository.findAll());
     }
 
     /**

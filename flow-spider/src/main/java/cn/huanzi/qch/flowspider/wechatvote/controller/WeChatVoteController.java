@@ -1,7 +1,8 @@
 package cn.huanzi.qch.flowspider.wechatvote.controller;
 
 import cn.huanzi.qch.commonspider.repository.IpProxyPoolRepository;
-import cn.huanzi.qch.commonspider.util.HttpClientUtil;
+import cn.huanzi.qch.commonspider.util.IpProxyPoolUtil;
+import cn.huanzi.qch.commonspider.util.RandomUtil;
 import cn.huanzi.qch.commonspider.util.WebClientUtil;
 import cn.huanzi.qch.commonspider.vo.ResultVo;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -44,7 +45,7 @@ public class WeChatVoteController {
         //开启任务
 
         //更新IP代理，User Agent池赋一个空对象即可
-        WebClientUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), new ArrayList<>());
+        IpProxyPoolUtil.updateIpProxyPoolAndUserAgentPool(ipProxyPoolRepository.findAll(), new ArrayList<>());
         go(WebClientUtil.getWebClient());
     }
 
@@ -82,7 +83,7 @@ public class WeChatVoteController {
 
                 //随机设置微信UserAgent标识
                 Map<String, String> headers = new HashMap<>();
-                headers.put("User-Agent", webKitUserAgent[HttpClientUtil.randomNumber(0, webKitUserAgent.length - 1)]);
+                headers.put("User-Agent", webKitUserAgent[RandomUtil.randomNumber(0, webKitUserAgent.length - 1)]);
 
                 Map<String, Object> paramMap = new HashMap<>();
                 paramMap.put("json","{\"super_vote_item\":[{\"vote_id\":452951133,\"item_idx_list\":{\"item_idx\":[\"20\"]}}],\"super_vote_id\":452950995}");
@@ -98,7 +99,7 @@ public class WeChatVoteController {
                 paramMap.put("wxtoken","777");
                 try {
                     //随机3到6秒数访问
-                    Integer random = HttpClientUtil.randomNumber(3, 6);
+                    Integer random = RandomUtil.randomNumber(3, 6);
                     log.info(random + "秒后开始下一次访问");
                     Thread.sleep(random * 1000);
 
