@@ -51,7 +51,7 @@ public class SportsScheduler {
         webClient.addRequestHeader("Accept-Encoding","gzip");
 
         //设置cookie
-        WebClientUtil.setCookie(webClient,"sports.lifesense.com","session=%7B%22accessToken%22%3A%22d4f2b49f4ee64f66b067f34fff8ba033%22%2C%22appType%22%3A6%2C%22expireAt%22%3A1601781691345%2C%22loginId%22%3A%2227125870%22%2C%22userType%22%3A99%2C%22gray%22%3Afalse%7D; appType2=6; accessToken2=d4f2b49f4ee64f66b067f34fff8ba033; expireAt2=1601781691345; loginId2=27125870; userType2=99; gray2=false; session=%7B%22accessToken%22%3A%22d4f2b49f4ee64f66b067f34fff8ba033%22%2C%22appType%22%3A6%2C%22expireAt%22%3A1601781691345%2C%22loginId%22%3A%2227125870%22%2C%22userType%22%3A99%2C%22gray%22%3Afalse%7D; userType2=99; expireAt2=1601781691345; accessToken=D2A6AFB93531605DBE56DC2EEE74C4C909C43A335079CB661214D00DB8B225199DAE586666F19751CDAC8A142256DD3359C3A7AAAE2EAC2A827CFC4A4568C60CF31E3097ACEF1EB4AE49BF522869EFCC64CC89D6FD301A447148A3C79CE0ECC949554FBB05547258AAD122D8E99AD8A24668699AC4F5A5C4B7C28A537C8603EE.EBDF843E9902A27D076B2A4CB17EE3BBB45887E721D0F2F15337B4EA04665975; accessToken2=d4f2b49f4ee64f66b067f34fff8ba033; loginId2=27125870; gray2=false; appType2=6");
+        WebClientUtil.setCookie(webClient,"sports.lifesense.com","session={\"accessToken\":\"d4f2b49f4ee64f66b067f34fff8ba033\",\"appType\":6,\"expireAt\":1601781691345,\"loginId\":\""+userId+"\",\"userType\":99,\"gray\":false}; appType2=6; accessToken2=d4f2b49f4ee64f66b067f34fff8ba033; expireAt2=1601781691345; loginId2="+userId+"; userType2=99; gray2=false; ");
 
         //post
         try {
