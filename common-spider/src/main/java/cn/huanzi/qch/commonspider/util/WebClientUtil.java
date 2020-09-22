@@ -54,6 +54,9 @@ public class WebClientUtil {
         //设置cookie
         for (String value : cookieString.split(";")) {
             String[] split = value.trim().split("=");
+            if(split.length <=0){
+                continue;
+            }
             //域名、key、value
             Cookie cookie = new Cookie(domain,split[0],split[1]);
             webClient.getCookieManager().addCookie(cookie);
