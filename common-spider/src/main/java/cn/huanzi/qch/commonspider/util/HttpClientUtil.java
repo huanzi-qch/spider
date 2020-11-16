@@ -119,6 +119,8 @@ public class HttpClientUtil {
 
     /**
      * 根据一个url发起post请求
+     *
+     * EntityUtils.toString(httpResponse.getEntity()) ：通过InputStream，将entity转成字符串
      */
     public static ResultVo<HttpResponse> gatherForPost(HttpClient httpClient, String url, String refererUrl, Map<String, String> headers, Map<String, Object> paramMap) throws IOException {
         //创建post方式请求对象
