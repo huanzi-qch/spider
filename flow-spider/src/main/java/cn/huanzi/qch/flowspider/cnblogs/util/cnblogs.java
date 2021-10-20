@@ -20,6 +20,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,7 +30,7 @@ import java.util.Map;
  * 需要提前设置博客主页地址（用于获取全部博客地址）、图床路径（生成的md文档中，图片的路径将会替换成我们的图床路径）
  * 匹配规则不一样全部适用，需要对task方法进行针对性调整
  */
-/*
+ /*
     需要引入依赖
     <!-- htmlunit 2.53.0 -->
     <dependency>
@@ -36,28 +38,25 @@ import java.util.Map;
         <artifactId>htmlunit</artifactId>
         <version>2.53.0</version>
     </dependency>
-
     <!-- mysql 驱动 -->
     <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>5.1.44</version>
     </dependency>
-
     <!-- oracle 驱动 -->
     <!--<dependency>
         <groupId>com.oracle</groupId>
         <artifactId>ojdbc6</artifactId>
         <version>11.2.0.3</version>
     </dependency>-->
-
     <!-- hutool-all -->
     <dependency>
         <groupId>cn.hutool</groupId>
         <artifactId>hutool-all</artifactId>
         <version>5.7.4</version>
     </dependency>
-
+	
     建表SQL语句
     CREATE TABLE `cnblogs`  (
       `id` int(4) NOT NULL COMMENT '表主键',
@@ -68,7 +67,6 @@ import java.util.Map;
       `comment_count` int(3) NULL DEFAULT NULL COMMENT '评论数',
       PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '博客园博客备份表' ROW_FORMAT = Compact;
-
  */
 public class cnblogs {
 
@@ -78,7 +76,7 @@ public class cnblogs {
      */
     private static String urlByTest = null;
     static{
-//        urlByTest = "https://www.cnblogs.com/huanzi-qch/p/9418279.html";
+//        urlByTest = "https://www.cnblogs.com/huanzi-qch/p/9930390.html";
     }
 
     /**
@@ -88,13 +86,19 @@ public class cnblogs {
 
     /**
      * 图床地址
+     * PS：如果下载图片到本地，则需要配置图床地址
      */
-    private static String imgPath = "https://huanzi-qch.gitee.io/file-server/blog-image/";
+    private static String imgPath = "";
 
+    /**
+     * 是否下载图片到本地
+     */
+    private static boolean isDownloadImg = false;
+    
     /**
      * 是否入库
      */
-    private static boolean isPutDataBase = true;
+    private static boolean isPutDataBase = false;
 
     /**
      * main入口函数
@@ -104,13 +108,14 @@ public class cnblogs {
         try (WebClient webClient = new WebClient(BrowserVersion.FIREFOX_78)) {
             webClient.getOptions().setJavaScriptEnabled(false);//禁用js
             webClient.getOptions().setCssEnabled(false);//禁用css
-            webClient.getOptions().setTimeout(5000); //设置连接超时时间
+            webClient.getOptions().setTimeout(10000); //设置连接超时时间
 
             // hutool工具类，使用jdbc进行操作
             SimpleDataSource ds;
             Db db = null;
             if(isPutDataBase){
                 ds = new SimpleDataSource("jdbc:mysql://localhost/jfinal_demo", "root", "123456");
+
                 // ds = new SimpleDataSource("jdbc:oracle:thin:@localhost:1521:orcl", "test", "test");
 
                 db = Db.use(ds);
@@ -141,7 +146,9 @@ public class cnblogs {
             System.out.println("获取所有博客地址成功，共有"+arrayList.size()+"篇博客");
 
             //清空表
-            db.execute("truncate table cnblogs");
+            if(isPutDataBase) {
+                db.execute("truncate table cnblogs");
+            }
 
             for (int i = 0; i < arrayList.size(); i++) {
                 Map<Object, Object> paramMap =task(webClient,arrayList.get(i));
@@ -152,8 +159,8 @@ public class cnblogs {
                     db.execute("insert into cnblogs values (:id, :title, :content, :date, :view_count, :comment_count)",paramMap);
                 }
 
-                //随机休眠5-10秒
-                Thread.sleep(RandomUtil.randomInt(5000, 10000));
+                //随机休眠
+                Thread.sleep(RandomUtil.randomInt(1000, 2000));
             }
 
             System.out.println(arrayList.size()+"篇博客备份全部完成！耗时："+(timer.intervalMinute()) + "分钟");
@@ -245,22 +252,46 @@ public class cnblogs {
 
         //内容
         StringBuilder stringBuilder = new StringBuilder();
-        for (DomNode childNode : page.querySelector("div#cnblogs_post_body").getChildNodes()) {
+        DomNodeList<DomNode> childNodes = page.querySelector("div#cnblogs_post_body").getChildNodes();
+        DomNode[] array = new DomNode[childNodes.size()];
+        array = childNodes.toArray(array);
+        List<DomNode> psParamList = new ArrayList<>(Arrays.asList(array));
+        for (int i = 0; i < psParamList.size(); i++) {
+            DomNode childNode = psParamList.get(i);
+
+            //<div class="para">
+            Node aClass = childNode.getAttributes().getNamedItem("class");
+            if("div".equals(childNode.getNodeName()) && aClass != null && "para".equals(aClass.getTextContent())){
+                psParamList.addAll(i,childNode.getChildNodes());
+                psParamList.remove(childNode);
+                i--;
+                continue;
+            }
+
             //h2，二级标题
             if("h2".equals(childNode.getNodeName())){
-                stringBuilder.append("## ").append(childNode.asNormalizedText()).append(" <br/>\n");
+                String text = childNode.asNormalizedText();
+                if(!"".equals(text.trim().replaceAll("　",""))){
+                    stringBuilder.append("## ").append(text).append(" <br/>\n");
+                }
+                continue;
             }
 
             //h3，三级标题
             if("h3".equals(childNode.getNodeName())){
-                stringBuilder.append("### ").append(childNode.asNormalizedText()).append(" <br/>\n");
+                String text = childNode.asNormalizedText();
+                if(!"".equals(text.trim().replaceAll("　",""))){
+                    stringBuilder.append("### ").append(text).append(" <br/>\n");
+                }
+                continue;
             }
 
             //div，代码内容
-            if("div".equals(childNode.getNodeName())){
+            if("div".equals(childNode.getNodeName()) && aClass != null && "cnblogs_code".equals(aClass.getTextContent())){
                 stringBuilder.append("```").append("\n");
                 stringBuilder.append(childNode.asNormalizedText()).append("\n");
                 stringBuilder.append("```").append("\n");
+                continue;
             }
 
             //table，表格内容
@@ -268,8 +299,8 @@ public class cnblogs {
                 DomNodeList<DomNode> trDomNodes = childNode.querySelectorAll("tr");
 
                 stringBuilder.append("\n");
-                for (int i = 0; i < trDomNodes.size(); i++) {
-                    DomNode trDomNode = trDomNodes.get(i);
+                for (int j = 0; j < trDomNodes.size(); j++) {
+                    DomNode trDomNode = trDomNodes.get(j);
                     DomNodeList<DomNode> tdDomNodes = trDomNode.querySelectorAll("td");
                     for (DomNode tdDomNode : tdDomNodes) {
                         stringBuilder.append("|").append(tdDomNode.asNormalizedText());
@@ -277,78 +308,86 @@ public class cnblogs {
                     stringBuilder.append("|\n");
 
                     //标题
-                    if(i == 0){
-                        for (int j = 0; j < tdDomNodes.size(); j++) {
+                    if(j == 0){
+                        for (int k = 0; k < tdDomNodes.size(); k++) {
                             stringBuilder.append("|:----:");
                         }
                         stringBuilder.append("|\n");
                     }
                 }
                 stringBuilder.append(" <br/>\n");
+                continue;
             }
 
-            //p，文本内容
-            if("p".equals(childNode.getNodeName())){
-                //图片
-                if(childNode.asXml().contains("<img")){
-                    DomNodeList<DomNode> imgDomNodes = childNode.querySelectorAll("img");
+            //文本内容
 
-                    for (DomNode imgDomNode : imgDomNodes) {
-                        Node srcItem = imgDomNode.getAttributes().getNamedItem("src");
-                        if(srcItem == null){
-                            break;
-                        }
+            //图片
+            if(childNode.asXml().contains("<img")){
+                DomNodeList<DomNode> imgDomNodes = childNode.querySelectorAll("img");
+                DomNode[] array1 = new DomNode[imgDomNodes.size()];
+                array1 = imgDomNodes.toArray(array1);
+                List<DomNode> psParamList1 = new ArrayList<>(Arrays.asList(array1));
+                if(psParamList1.size() <= 0){
+                    psParamList1.add(childNode);
+                }
+                for (DomNode imgDomNode : psParamList1) {
+                    Node srcItem = imgDomNode.getAttributes().getNamedItem("src");
+                    if(srcItem == null){
+                        break;
+                    }
 
-                        //得到图片网络地址
-                        String src = srcItem.getTextContent();
+                    //得到图片网络地址
+                    String src = srcItem.getTextContent();
 
-                        //将文件下载后保存
-                        String[] split = src.split("/1353055/");
+                    //将文件下载后保存
+                    String[] split = src.split("/1353055/");
 
-                        //图片保存路径，随机休眠1-2秒
-                        //重要：先下载到本地，再上传到图床
+                    //图片保存路径，随机休眠1-2秒，重要：先下载到本地，再上传到图床
+                    if(isDownloadImg){
                         File file = new File("F:/cnblogs/blog-image/" + split[1]);
                         if(!file.exists()){
                             Thread.sleep(RandomUtil.randomInt(1000, 2000));
                             HttpUtil.downloadFile(src, file);
                         }
-
                         //写入新路径
                         stringBuilder.append("![](").append(imgPath).append(split[1]).append(")").append(" ");
-                    }
-                    stringBuilder.append(" <br/>\n");
-                }
-                //标注字体颜色
-                else if("span".equals(childNode.getLastChild().getNodeName())){
-                    DomNode span = childNode.getLastChild();
-                    stringBuilder.append("　　").append(span.asXml().replaceAll("\r","").replaceAll("\n","")).append(" <br/>\n");
-                }
-                //包含a标签
-                else if(childNode.asXml().contains("</a>")){
-                    String newPText = childNode.asNormalizedText();
-
-                    DomNodeList<DomNode> aDomNodes = childNode.querySelectorAll("a");
-                    for (DomNode aDomNode : aDomNodes) {
-                        String text = aDomNode.asNormalizedText();
-                        String href = aDomNode.getAttributes().getNamedItem("href").getTextContent();
-
-                        String newStr = "["+text+"]("+href+")";
-
-                        newPText = newPText.replace(text,newStr);
-                    }
-
-                    //替换
-                    stringBuilder.append(newPText).append(" <br/>\n");
-                }
-                //普通文字
-                else{
-                    String pText = childNode.asNormalizedText();
-                    if(StrUtil.isBlankIfStr(pText)){
-                        stringBuilder.append("\n");
                     }else{
-                        //四个空格转换
-                        stringBuilder.append(pText.replaceFirst("    ","　　")).append(" <br/>\n");
+                        //写入src路径
+                        stringBuilder.append("![](").append(src).append(")").append(" ");
                     }
+                }
+                stringBuilder.append(" <br/>\n");
+            }
+            //标注字体颜色
+            else if(childNode.getLastChild() != null && "span".equals(childNode.getLastChild().getNodeName())){
+                DomNode span = childNode.getLastChild();
+                stringBuilder.append("　　").append(span.asXml().replaceAll("\r","").replaceAll("\n","")).append(" <br/>\n");
+            }
+            //包含a标签
+            else if(childNode.asXml().contains("</a>")){
+                String newPText = childNode.asNormalizedText();
+
+                DomNodeList<DomNode> aDomNodes = childNode.querySelectorAll("a");
+                for (DomNode aDomNode : aDomNodes) {
+                    String text = aDomNode.asNormalizedText();
+                    String href = aDomNode.getAttributes().getNamedItem("href").getTextContent();
+
+                    String newStr = "["+text+"]("+href+")";
+
+                    newPText = newPText.replace(text,newStr);
+                }
+
+                //替换
+                stringBuilder.append(newPText).append(" <br/>\n");
+            }
+            //普通文字
+            else{
+                String pText = childNode.asNormalizedText();
+                if(StrUtil.isBlankIfStr(pText)){
+                    stringBuilder.append("\n");
+                }else{
+                    //四个空格转换
+                    stringBuilder.append(pText.replaceFirst("    ","　　")).append(" <br/>\n");
                 }
             }
 
@@ -395,8 +434,8 @@ public class cnblogs {
 
         //下一页
         if(page.querySelector("div.topicListFooter").asNormalizedText().contains("下一页")){
-            //随机休眠3-5秒
-            Thread.sleep(RandomUtil.randomInt(3000, 5000));
+            //随机休眠
+            Thread.sleep(RandomUtil.randomInt(1000, 2000));
             ArrayList<String> urls = getUrls(webClient,url,pageNumber+1);
             arrayList.addAll(urls);
         }
